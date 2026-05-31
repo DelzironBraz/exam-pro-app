@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import { getStoredToken } from '@/lib/api/client'
 import { useAuth } from '@/hooks/use-auth'
 import { usePermissions } from '@/hooks/use-permissions'
 import { ROUTE_TO_VIEW, getDefaultHomePath } from '@/lib/permissions/rules'
@@ -18,9 +19,12 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
   const pathname = usePathname()
   const router = useRouter()
 
+  const hasStoredSession =
+    typeof window !== 'undefined' && !!getStoredToken()
+
   useEffect(() => {
     if (isLoading) return
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !hasStoredSession) {
       router.replace(`/login?redirect=${encodeURIComponent(pathname)}`)
       return
     }
@@ -32,7 +36,7 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
     if (view && !canView(view)) {
       router.replace(getDefaultHomePath(user?.role ?? null))
     }
-  }, [isLoading, isAuthenticated, requireAdmin, user, pathname, router, canView])
+  }, [isLoading, isAuthenticated, hasStoredSession, requireAdmin, user, pathname, router, canView])
 
   if (isLoading) {
     return (
@@ -42,7 +46,7 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
     )
   }
 
-  if (!isAuthenticated) return null
+  if (!isAuthenticated && !hasStoredSession) return null
 
   return <>{children}</>
 }

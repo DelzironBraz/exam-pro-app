@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Play } from 'lucide-react'
-import { useSimulationsList } from '@/hooks/use-simulations'
+import { useExamsList } from '@/hooks/use-exams'
 import { useSelectedGroup } from '@/hooks/use-selected-group'
 import { PageHeader } from '@/components/app/page-header'
 import { GroupPicker } from '@/components/app/group-picker'
@@ -13,16 +13,16 @@ import { Spinner } from '@/components/ui/spinner'
 import { Badge } from '@/components/ui/badge'
 import { CanView } from '@/components/auth/can-view'
 
-export default function SimuladosPage() {
+export default function ProvasPage() {
   const { groupId } = useSelectedGroup()
-  const { data: sims, loading, error } = useSimulationsList(groupId ?? undefined)
+  const { data: exams, loading, error } = useExamsList(groupId ?? undefined)
 
   return (
-    <CanView view="student.simulations" fallback={<p>Sem permissão.</p>}>
+    <CanView view="student.exams" fallback={<p>Sem permissão.</p>}>
       <div className="space-y-6">
         <PageHeader
-          title="Simulados"
-          description="Pratique com listas cronometradas de questões."
+          title="Provas"
+          description="Provas completas para treino cronometrado."
           actions={
             <>
               <GroupsManageDrawer />
@@ -35,25 +35,32 @@ export default function SimuladosPage() {
           <div className="flex justify-center p-12"><Spinner className="h-8 w-8" /></div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {(sims ?? []).map((s) => (
-              <Card key={s.id} className="border-border">
+            {(exams ?? []).map((exam) => (
+              <Card key={exam.id} className="border-border">
                 <CardContent className="p-5 space-y-3">
-                  <h3 className="font-semibold text-lg">{s.title}</h3>
-                  {s.description && <p className="text-sm text-muted-foreground">{s.description}</p>}
+                  <h3 className="font-semibold text-lg">{exam.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {exam.institution} · {exam.organization} · {exam.year}
+                  </p>
                   <div className="flex gap-2">
-                    <Badge variant="secondary">{s.timerMode}</Badge>
-                    {s.durationMinutes != null && (
-                      <Badge variant="outline">{s.durationMinutes} min</Badge>
-                    )}
+                    <Badge variant="outline">{exam.durationMinutes} min</Badge>
+                    <Badge variant="secondary">
+                      {exam.totalQuestions ?? exam.questionIds?.length ?? 0} questões
+                    </Badge>
                   </div>
                   <Button asChild className="gap-2">
-                    <Link href={`/simulado/${s.id}`}>
-                      <Play className="h-4 w-4" /> Iniciar simulado
+                    <Link href={`/provas/${exam.id}`}>
+                      <Play className="h-4 w-4" /> Iniciar prova
                     </Link>
                   </Button>
                 </CardContent>
               </Card>
             ))}
+            {groupId && (exams ?? []).length === 0 && (
+              <p className="text-muted-foreground col-span-2 text-center py-8">
+                Nenhuma prova neste grupo.
+              </p>
+            )}
           </div>
         )}
       </div>

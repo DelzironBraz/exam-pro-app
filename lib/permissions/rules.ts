@@ -67,6 +67,8 @@ export type AppView =
   | 'admin.simulations'
   | 'admin.parser'
   | 'admin.users'
+  | 'admin.groups'
+  | 'admin.tags'
   | 'admin.settings'
 
 export const VIEW_PERMISSIONS: Record<AppView, PermissionAction[]> = {
@@ -83,12 +85,15 @@ export const VIEW_PERMISSIONS: Record<AppView, PermissionAction[]> = {
   'admin.simulations': ['simulations.manage'],
   'admin.parser': ['pdfParser.manage'],
   'admin.users': ['users.manage'],
+  'admin.groups': ['groups.manage'],
+  'admin.tags': ['tags.manage', 'tags.read'],
   'admin.settings': [],
 }
 
 export const ROUTE_TO_VIEW: Record<string, AppView> = {
   '/dashboard': 'student.dashboard',
   '/questoes': 'student.questions',
+  '/simulado': 'student.simulations',
   '/provas': 'student.exams',
   '/simulados': 'student.simulations',
   '/plano-estudos': 'student.studyPlans',
@@ -100,6 +105,8 @@ export const ROUTE_TO_VIEW: Record<string, AppView> = {
   '/admin/simulados': 'admin.simulations',
   '/admin/parser': 'admin.parser',
   '/admin/usuarios': 'admin.users',
+  '/admin/grupos': 'admin.groups',
+  '/admin/tags': 'admin.tags',
   '/admin/configuracoes': 'admin.settings',
 }
 

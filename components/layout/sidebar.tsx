@@ -17,6 +17,8 @@ import {
   FileCode,
   MessageSquare,
   Users,
+  FolderOpen,
+  Tag,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -43,6 +45,8 @@ const studentNavItems: NavItem[] = [
 
 const adminNavItems: NavItem[] = [
   { title: "Dashboard", href: "/admin", icon: LayoutDashboard, view: "admin.dashboard" },
+  { title: "Grupos", href: "/admin/grupos", icon: FolderOpen, view: "admin.groups" },
+  { title: "Tags", href: "/admin/tags", icon: Tag, view: "admin.tags" },
   { title: "Questões", href: "/admin/questoes", icon: FileQuestion, view: "admin.questions" },
   { title: "Provas", href: "/admin/provas", icon: FileText, view: "admin.exams" },
   { title: "Simulados", href: "/admin/simulados", icon: ClipboardList, view: "admin.simulations" },

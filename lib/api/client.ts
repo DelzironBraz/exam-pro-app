@@ -45,9 +45,12 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiErrorBody>) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      setStoredToken(null)
       const path = window.location.pathname
       if (!path.startsWith('/login')) {
+        setStoredToken(null)
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('ow_user') // USER_STORAGE_KEY em use-auth
+        }
         window.location.href = `/login?redirect=${encodeURIComponent(path)}`
       }
     }

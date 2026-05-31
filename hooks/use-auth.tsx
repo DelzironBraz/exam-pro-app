@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { flushSync } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/api/axios'
 import { getApiErrorMessage, setStoredToken } from '@/lib/api/client'
@@ -16,7 +17,7 @@ import { invalidateCache } from '@/lib/api/cache'
 import type { AuthUser, LoginResponse } from '@/lib/api/types'
 import { getDefaultHomePath } from '@/lib/permissions/rules'
 
-const USER_KEY = 'ow_user'
+export const USER_STORAGE_KEY = 'ow_user'
 
 interface AuthContextValue {
   user: AuthUser | null
@@ -30,7 +31,7 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 function loadStoredUser(): AuthUser | null {
   if (typeof window === 'undefined') return null
-  const raw = localStorage.getItem(USER_KEY)
+  const raw = localStorage.getItem(USER_STORAGE_KEY)
   if (!raw) return null
   try {
     return JSON.parse(raw) as AuthUser
@@ -41,8 +42,8 @@ function loadStoredUser(): AuthUser | null {
 
 function persistUser(user: AuthUser | null): void {
   if (typeof window === 'undefined') return
-  if (user) localStorage.setItem(USER_KEY, JSON.stringify(user))
-  else localStorage.removeItem(USER_KEY)
+  if (user) localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
+  else localStorage.removeItem(USER_STORAGE_KEY)
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -59,11 +60,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string, redirectTo?: string) => {
       const { data } = await authApi.login({ email, password })
       const payload = data as LoginResponse
+
+      if (!payload?.accessToken || !payload?.user) {
+        throw new Error('Resposta de login inválida')
+      }
+
       setStoredToken(payload.accessToken)
       persistUser(payload.user)
-      setUser(payload.user)
       invalidateCache()
-      router.push(redirectTo ?? getDefaultHomePath(payload.user.role))
+
+      // Garante que o AuthGuard veja o usuário antes da navegação
+      flushSync(() => setUser(payload.user))
+
+      const destination = redirectTo ?? getDefaultHomePath(payload.user.role)
+      router.replace(destination)
     },
     [router]
   )
