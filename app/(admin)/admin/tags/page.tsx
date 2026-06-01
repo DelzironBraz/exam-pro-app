@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { useTagsList } from '@/hooks/use-tags'
 import { PageHeader } from '@/components/app/page-header'
+import { PaginationControls } from '@/components/app/pagination-controls'
 import { TagFormDrawer } from '@/components/forms/tag-form-drawer'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -22,7 +23,7 @@ import { CanView } from '@/components/auth/can-view'
 
 export default function AdminTagsPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const { data: tags, loading, error, refetch } = useTagsList()
+  const { items, loading, error, refetch, page, limit, pagination, setPage, setLimit } = useTagsList()
 
   const handleDelete = async (id: string) => {
     if (!confirm('Remover tag?')) return
@@ -48,26 +49,40 @@ export default function AdminTagsPage() {
           {loading ? (
             <div className="flex justify-center p-12"><Spinner className="h-8 w-8" /></div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead className="w-20" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(tags ?? []).map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell className="font-medium">{t.name}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(t.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead className="w-20" />
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {items.map((t) => (
+                    <TableRow key={t.id}>
+                      <TableCell className="font-medium">{t.name}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(t.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {pagination && (
+                <div className="p-4">
+                  <PaginationControls
+                    page={page}
+                    limit={limit}
+                    total={pagination.total}
+                    totalPages={pagination.totalPages}
+                    onPageChange={setPage}
+                    onLimitChange={setLimit}
+                  />
+                </div>
+              )}
+            </>
           )}
         </Card>
         <TagFormDrawer open={drawerOpen} onOpenChange={setDrawerOpen} onSuccess={() => refetch(true)} />

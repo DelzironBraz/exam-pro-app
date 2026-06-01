@@ -5,6 +5,7 @@ import { examsApi } from '@/lib/api/axios'
 import { getApiErrorMessage } from '@/lib/api/client'
 import { invalidateNamespaces } from '@/lib/api/invalidate'
 import { FormDrawer } from '@/components/app/form-drawer'
+import { QuestionSelector } from '@/components/app/question-selector'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useSelectedGroup } from '@/hooks/use-selected-group'
@@ -25,16 +26,15 @@ export function ExamFormDrawer({ open, onOpenChange, onSuccess }: ExamFormDrawer
   const [year, setYear] = useState(String(new Date().getFullYear()))
   const [roleName, setRoleName] = useState('')
   const [durationMinutes, setDurationMinutes] = useState('180')
-  const [questionIds, setQuestionIds] = useState('')
+  const [questionIds, setQuestionIds] = useState<string[]>([])
 
   const handleSubmit = async () => {
     if (!groupId) {
       setError('Selecione um grupo.')
       return
     }
-    const ids = questionIds.split(/[\s,]+/).filter(Boolean)
-    if (ids.length === 0) {
-      setError('Informe ao menos um ID de questão (UUID).')
+    if (questionIds.length === 0) {
+      setError('Selecione ao menos uma questão.')
       return
     }
     setLoading(true)
@@ -48,7 +48,7 @@ export function ExamFormDrawer({ open, onOpenChange, onSuccess }: ExamFormDrawer
         year: Number(year),
         roleName,
         durationMinutes: Number(durationMinutes),
-        questionIds: ids,
+        questionIds,
       })
       invalidateNamespaces('exams')
       onOpenChange(false)
@@ -93,8 +93,8 @@ export function ExamFormDrawer({ open, onOpenChange, onSuccess }: ExamFormDrawer
           <Input type="number" value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label>IDs das questões (vírgula ou linha)</Label>
-          <Input value={questionIds} onChange={(e) => setQuestionIds(e.target.value)} placeholder="uuid, uuid..." />
+          <Label>Questões</Label>
+          <QuestionSelector selectedIds={questionIds} onChange={setQuestionIds} />
         </div>
       </div>
     </FormDrawer>

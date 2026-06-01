@@ -6,6 +6,7 @@ import { useGroupsList } from '@/hooks/use-groups'
 import { useSelectedGroup } from '@/hooks/use-selected-group'
 import { usePermissions } from '@/hooks/use-permissions'
 import { GroupFormDrawer } from '@/components/forms/group-form-drawer'
+import { PaginationControls } from '@/components/app/pagination-controls'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
@@ -42,7 +43,17 @@ export function GroupsManageDrawer({
 }: GroupsManageDrawerProps) {
   const { can } = usePermissions()
   const { groupId, setGroupId, options } = useSelectedGroup()
-  const { data: groups, loading, error, refetch } = useGroupsList(undefined, can('groups.manage'))
+  const {
+    items: groups,
+    loading,
+    error,
+    refetch,
+    page,
+    limit,
+    pagination,
+    setPage,
+    setLimit,
+  } = useGroupsList(undefined, can('groups.manage'))
 
   const [listOpen, setListOpen] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
@@ -119,64 +130,76 @@ export function GroupsManageDrawer({
                 <Spinner className="h-8 w-8" />
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead className="w-24" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(groups ?? []).length === 0 && (
+              <>
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                        Nenhum grupo cadastrado.
-                      </TableCell>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead className="w-24" />
                     </TableRow>
-                  )}
-                  {(groups ?? []).map((g) => (
-                    <TableRow
-                      key={g.id}
-                      className={cn(
-                        'cursor-pointer',
-                        groupId === g.id && 'bg-primary/5'
-                      )}
-                      onClick={() => selectGroup(g.id)}
-                    >
-                      <TableCell>
-                        <div className="font-medium">{g.name}</div>
-                        <div className="text-xs text-muted-foreground">{g.visibility}</div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{g.type}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => openEdit(g)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => handleDelete(g)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {groups.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                          Nenhum grupo cadastrado.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {groups.map((g) => (
+                      <TableRow
+                        key={g.id}
+                        className={cn(
+                          'cursor-pointer',
+                          groupId === g.id && 'bg-primary/5'
+                        )}
+                        onClick={() => selectGroup(g.id)}
+                      >
+                        <TableCell>
+                          <div className="font-medium">{g.name}</div>
+                          <div className="text-xs text-muted-foreground">{g.visibility}</div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{g.type}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => openEdit(g)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleDelete(g)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {pagination && (
+                  <PaginationControls
+                    page={page}
+                    limit={limit}
+                    total={pagination.total}
+                    totalPages={pagination.totalPages}
+                    onPageChange={setPage}
+                    onLimitChange={setLimit}
+                  />
+                )}
+              </>
             )}
           </div>
 

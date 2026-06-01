@@ -3,18 +3,19 @@
 import { useCallback } from 'react'
 import { studyPlansApi } from '@/lib/api/axios'
 import { useApiQuery } from '@/hooks/use-api-query'
+import { usePaginatedQuery } from '@/hooks/use-paginated-query'
 import { usePermissions } from '@/hooks/use-permissions'
-import type { StudyPlanResponse } from '@/lib/api/types'
+import type { Paginated, StudyPlanResponse } from '@/lib/api/types'
 
 export function useStudyPlansList() {
   const { can } = usePermissions()
 
-  const fetcher = useCallback(async () => {
-    const { data } = await studyPlansApi.list()
-    return data as StudyPlanResponse[]
+  const fetcher = useCallback(async (p: { page: number; limit: number }) => {
+    const { data } = await studyPlansApi.list({ page: p.page, limit: p.limit })
+    return data as Paginated<StudyPlanResponse>
   }, [])
 
-  return useApiQuery(fetcher, {
+  return usePaginatedQuery(fetcher, {
     namespace: 'study-plans:list',
     enabled: can('studyPlans.manage'),
   })

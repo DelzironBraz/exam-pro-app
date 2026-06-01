@@ -5,6 +5,7 @@ import { simulationsApi } from '@/lib/api/axios'
 import { getApiErrorMessage } from '@/lib/api/client'
 import { invalidateNamespaces } from '@/lib/api/invalidate'
 import { FormDrawer } from '@/components/app/form-drawer'
+import { QuestionSelector } from '@/components/app/question-selector'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -23,7 +24,11 @@ interface SimulationFormDrawerProps {
   onSuccess?: () => void
 }
 
-export function SimulationFormDrawer({ open, onOpenChange, onSuccess }: SimulationFormDrawerProps) {
+export function SimulationFormDrawer({
+  open,
+  onOpenChange,
+  onSuccess,
+}: SimulationFormDrawerProps) {
   const { groupId } = useSelectedGroup()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -31,16 +36,15 @@ export function SimulationFormDrawer({ open, onOpenChange, onSuccess }: Simulati
   const [description, setDescription] = useState('')
   const [timerMode, setTimerMode] = useState('fixed')
   const [durationMinutes, setDurationMinutes] = useState('90')
-  const [questionIds, setQuestionIds] = useState('')
+  const [questionIds, setQuestionIds] = useState<string[]>([])
 
   const handleSubmit = async () => {
     if (!groupId) {
       setError('Selecione um grupo.')
       return
     }
-    const ids = questionIds.split(/[\s,]+/).filter(Boolean)
-    if (ids.length === 0) {
-      setError('Informe ao menos um ID de questão.')
+    if (questionIds.length === 0) {
+      setError('Selecione ao menos uma questão.')
       return
     }
     setLoading(true)
@@ -52,7 +56,7 @@ export function SimulationFormDrawer({ open, onOpenChange, onSuccess }: Simulati
         description: description || undefined,
         timerMode,
         durationMinutes: timerMode === 'fixed' ? Number(durationMinutes) : undefined,
-        questionIds: ids,
+        questionIds,
       })
       invalidateNamespaces('simulations')
       onOpenChange(false)
@@ -93,8 +97,8 @@ export function SimulationFormDrawer({ open, onOpenChange, onSuccess }: Simulati
           </div>
         )}
         <div className="space-y-2">
-          <Label>IDs das questões</Label>
-          <Input value={questionIds} onChange={(e) => setQuestionIds(e.target.value)} placeholder="uuid, uuid..." />
+          <Label>Questões</Label>
+          <QuestionSelector selectedIds={questionIds} onChange={setQuestionIds} />
         </div>
       </div>
     </FormDrawer>

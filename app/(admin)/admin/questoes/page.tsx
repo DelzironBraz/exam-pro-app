@@ -7,6 +7,8 @@ import { useQuestionsList } from '@/hooks/use-questions'
 import { useSelectedGroup } from '@/hooks/use-selected-group'
 import { PageHeader } from '@/components/app/page-header'
 import { GroupPicker } from '@/components/app/group-picker'
+import { GroupsManageDrawer } from '@/components/groups/groups-manage-drawer'
+import { PaginationControls } from '@/components/app/pagination-controls'
 import { QuestionFormDrawer } from '@/components/forms/question-form-drawer'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -29,9 +31,9 @@ import type { QuestionDifficulty } from '@/lib/api/types'
 export default function AdminQuestoesPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const { groupId } = useSelectedGroup()
-  const params = useMemo(() => (groupId ? { groupId } : {}), [groupId])
-  const { data, loading, error, refetch } = useQuestionsList(params)
-  const items = data?.items ?? []
+  const listParams = useMemo(() => (groupId ? { groupId } : {}), [groupId])
+  const { items, loading, error, refetch, page, limit, pagination, setPage, setLimit } =
+    useQuestionsList(listParams)
 
   const handleDelete = async (id: string) => {
     if (!confirm('Remover questão?')) return
@@ -45,9 +47,10 @@ export default function AdminQuestoesPage() {
       <div className="space-y-6">
         <PageHeader
           title="Banco de Questões"
-          description="Crie e gerencie questões do grupo selecionado."
+          description={pagination ? `${pagination.total} questões no grupo` : undefined}
           actions={
             <>
+              <GroupsManageDrawer />
               <GroupPicker />
               <Button onClick={() => setDrawerOpen(true)} className="gap-2" disabled={!groupId}>
                 <Plus className="h-4 w-4" /> Nova questão
@@ -60,37 +63,51 @@ export default function AdminQuestoesPage() {
           {loading ? (
             <div className="flex justify-center p-12"><Spinner className="h-8 w-8" /></div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Disciplina</TableHead>
-                  <TableHead>Enunciado</TableHead>
-                  <TableHead>Dificuldade</TableHead>
-                  <TableHead className="w-24" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((q) => (
-                  <TableRow key={q.id}>
-                    <TableCell>{q.discipline ?? '—'}</TableCell>
-                    <TableCell className="max-w-md truncate">{q.statement}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">
-                        {DIFFICULTY_LABELS[q.difficulty as QuestionDifficulty]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="flex gap-1">
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/questoes/${q.id}`}><Eye className="h-4 w-4" /></Link>
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(q.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Disciplina</TableHead>
+                    <TableHead>Enunciado</TableHead>
+                    <TableHead>Dificuldade</TableHead>
+                    <TableHead className="w-24" />
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {items.map((q) => (
+                    <TableRow key={q.id}>
+                      <TableCell>{q.discipline ?? '—'}</TableCell>
+                      <TableCell className="max-w-md truncate">{q.statement}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {DIFFICULTY_LABELS[q.difficulty as QuestionDifficulty]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="flex gap-1">
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link href={`/questoes/${q.id}`}><Eye className="h-4 w-4" /></Link>
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(q.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {pagination && (
+                <div className="p-4">
+                  <PaginationControls
+                    page={page}
+                    limit={limit}
+                    total={pagination.total}
+                    totalPages={pagination.totalPages}
+                    onPageChange={setPage}
+                    onLimitChange={setLimit}
+                  />
+                </div>
+              )}
+            </>
           )}
         </Card>
         <QuestionFormDrawer open={drawerOpen} onOpenChange={setDrawerOpen} onSuccess={() => refetch(true)} />

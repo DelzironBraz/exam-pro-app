@@ -1,10 +1,11 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useCallback } from 'react'
 import { questionsApi } from '@/lib/api/axios'
 import { useApiQuery } from '@/hooks/use-api-query'
+import { usePaginatedQuery } from '@/hooks/use-paginated-query'
 import { usePermissions } from '@/hooks/use-permissions'
-import type { QuestionResponse, QuestionsListResponse } from '@/lib/api/types'
+import type { Paginated, QuestionListItem, QuestionResponse } from '@/lib/api/types'
 
 export interface QuestionsListParams {
   groupId?: string
@@ -18,16 +19,17 @@ export function useQuestionsList(params: QuestionsListParams = {}) {
   const { can } = usePermissions()
   const enabled = can('questions.read')
 
-  const stableParams = useMemo(() => params, [JSON.stringify(params)])
+  const fetcher = useCallback(
+    async (p: QuestionsListParams & { page: number; limit: number }) => {
+      const { data } = await questionsApi.list(p as Record<string, unknown>)
+      return data as Paginated<QuestionListItem>
+    },
+    []
+  )
 
-  const fetcher = useCallback(async () => {
-    const { data } = await questionsApi.list(stableParams as Record<string, unknown>)
-    return data as QuestionsListResponse
-  }, [stableParams])
-
-  return useApiQuery(fetcher, {
+  return usePaginatedQuery(fetcher, {
     namespace: 'questions:list',
-    params: stableParams,
+    baseParams: params,
     enabled,
   })
 }

@@ -3,7 +3,8 @@ import { EXAMS } from '../endpoints'
 
 export const examsApi = {
   list: (params: { groupId: string }) => axiosInstance.get(EXAMS.LIST, { params }),
-  myAttempts: () => axiosInstance.get(EXAMS.MY_ATTEMPTS),
+  myAttempts: (params?: Record<string, unknown>) =>
+    axiosInstance.get(EXAMS.MY_ATTEMPTS, { params }),
   getAttempt: (attemptId: string | number) => axiosInstance.get(EXAMS.GET_ATTEMPT(attemptId)),
   getById: (id: string | number) => axiosInstance.get(EXAMS.GET_BY_ID(id)),
   create: (data: Record<string, unknown>) => axiosInstance.post(EXAMS.CREATE, data),

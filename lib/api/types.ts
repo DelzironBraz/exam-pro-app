@@ -12,6 +12,19 @@ export interface ApiErrorBody {
   statusCode: number
 }
 
+export interface PaginationParams {
+  page?: number
+  limit?: number
+}
+
+export interface Paginated<T> {
+  items: T[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
 export interface AuthUser {
   id: string
   email: string
@@ -75,10 +88,8 @@ export interface QuestionResponse extends QuestionListItem {
   alternatives?: QuestionAlternative[]
 }
 
-export interface QuestionsListResponse {
-  items: QuestionListItem[]
-  total: number
-}
+/** @deprecated Use Paginated<QuestionListItem> */
+export type QuestionsListResponse = Paginated<QuestionListItem>
 
 export interface AnswerQuestionResponse {
   isCorrect: boolean
@@ -101,6 +112,35 @@ export interface SimulationResponse {
   createdBy: string
   createdAt: string
   questionIds?: string[]
+}
+
+export interface SimulationAttemptResponse {
+  id: string
+  simulationId: string
+  userId: string
+  startedAt: string
+  finishedAt: string | null
+  totalCorrect: number
+  totalWrong: number
+  totalTimeSeconds: number
+  totalQuestions: number
+}
+
+export interface SimulationAnswerResult {
+  questionId: string
+  selectedAlternativeId: string
+  timeSpentSeconds: number
+  isCorrect: boolean
+  answeredAt: string
+}
+
+export interface SimulationResultResponse extends SimulationAttemptResponse {
+  scorePercent: number
+  answers: SimulationAnswerResult[]
+}
+
+export interface AttemptAnswerResponse {
+  isCorrect: boolean
 }
 
 export interface FlashcardResponse {
@@ -146,6 +186,13 @@ export interface StudyPlanResponse {
   progress?: StudyPlanProgress
 }
 
+export interface ExamSectionResponse {
+  id: string
+  name: string
+  weight: number
+  questionIds: string[]
+}
+
 export interface ExamResponse {
   id: string
   groupId: string
@@ -157,6 +204,7 @@ export interface ExamResponse {
   durationMinutes: number
   questionIds?: string[]
   totalQuestions?: number
+  sections?: ExamSectionResponse[]
 }
 
 export interface ExamAttemptResponse {
@@ -170,6 +218,12 @@ export interface ExamAttemptResponse {
   totalWrong: number
   totalTimeSeconds: number
   totalQuestions: number
+}
+
+export interface ExamResultResponse extends ExamAttemptResponse {
+  examTitle?: string
+  institution?: string
+  year?: number
 }
 
 export interface DashboardAnalytics {

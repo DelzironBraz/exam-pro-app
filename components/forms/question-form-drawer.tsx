@@ -59,6 +59,20 @@ export function QuestionFormDrawer({ open, onOpenChange, onSuccess }: QuestionFo
       setError('Selecione um grupo antes de criar a questão.')
       return
     }
+    const correctCount = alternatives.filter((a) => a.isCorrect).length
+    if (alternatives.length < 2) {
+      setError('Informe pelo menos 2 alternativas.')
+      return
+    }
+    if (correctCount !== 1) {
+      setError('Marque exatamente uma alternativa como correta.')
+      return
+    }
+    const labels = alternatives.map((a) => a.label.trim())
+    if (new Set(labels).size !== labels.length) {
+      setError('Labels das alternativas devem ser únicos.')
+      return
+    }
     setLoading(true)
     setError(null)
     try {

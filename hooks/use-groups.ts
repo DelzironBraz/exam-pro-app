@@ -2,25 +2,26 @@
 
 import { useCallback } from 'react'
 import { groupsApi } from '@/lib/api/axios'
-import { useApiQuery } from '@/hooks/use-api-query'
+import { usePaginatedQuery } from '@/hooks/use-paginated-query'
 import { usePermissions } from '@/hooks/use-permissions'
-import type { GroupResponse } from '@/lib/api/types'
+import type { GroupResponse, Paginated } from '@/lib/api/types'
 
-export function useGroupsList(params?: Record<string, unknown>, enabledOverride?: boolean) {
+export function useGroupsList(
+  params?: Record<string, unknown>,
+  enabledOverride?: boolean
+) {
   const { can } = usePermissions()
-  const enabled =
-    enabledOverride ?? (can('groups.manage') || can('questions.read'))
+  const enabled = enabledOverride ?? (can('groups.manage') || can('questions.read'))
 
-  const paramsKey = JSON.stringify(params ?? {})
+  const fetcher = useCallback(async (p: Record<string, unknown> & { page: number; limit: number }) => {
+    const { data } = await groupsApi.list(p)
+    return data as Paginated<GroupResponse>
+  }, [])
 
-  const fetcher = useCallback(async () => {
-    const { data } = await groupsApi.list(params)
-    return data as GroupResponse[]
-  }, [paramsKey])
-
-  return useApiQuery(fetcher, {
+  return usePaginatedQuery(fetcher, {
     namespace: 'groups:list',
-    params,
+    baseParams: params ?? {},
     enabled,
+    initialLimit: 50,
   })
 }

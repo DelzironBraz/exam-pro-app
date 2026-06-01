@@ -37,8 +37,8 @@ const performanceData = [
 export default function DashboardPage() {
   const { user } = useAuth()
   const { data: analytics, loading: analyticsLoading, error: analyticsError } = useDashboardAnalytics()
-  const { data: studyPlans } = useStudyPlansList()
-  const { data: examAttempts } = useMyExamAttempts()
+  const { items: studyPlans } = useStudyPlansList()
+  const { items: examAttempts } = useMyExamAttempts()
 
   const accuracyPercent = useMemo(
     () => (analytics ? Math.round(analytics.accuracy * 100) : 0),

@@ -7,6 +7,7 @@ import { useQuestionsList } from '@/hooks/use-questions'
 import { useSelectedGroup } from '@/hooks/use-selected-group'
 import { PageHeader } from '@/components/app/page-header'
 import { GroupPicker } from '@/components/app/group-picker'
+import { PaginationControls } from '@/components/app/pagination-controls'
 import { Card, CardContent } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { Badge } from '@/components/ui/badge'
@@ -28,7 +29,7 @@ export default function QuestoesPage() {
   const [discipline, setDiscipline] = useState('')
   const [difficulty, setDifficulty] = useState<string>('all')
 
-  const params = useMemo(() => {
+  const listParams = useMemo(() => {
     const p: Record<string, string> = {}
     if (groupId) p.groupId = groupId
     if (discipline) p.discipline = discipline
@@ -36,15 +37,27 @@ export default function QuestoesPage() {
     return p
   }, [groupId, discipline, difficulty])
 
-  const { data, loading, error } = useQuestionsList(params)
-  const items = data?.items ?? []
+  const {
+    items,
+    loading,
+    error,
+    page,
+    limit,
+    pagination,
+    setPage,
+    setLimit,
+  } = useQuestionsList(listParams)
 
   return (
     <CanView view="student.questions" fallback={<p>Sem permissão.</p>}>
       <div className="space-y-6">
         <PageHeader
-          title="Questões"
-          description={`${data?.total ?? 0} questões disponíveis`}
+          title="Banco de Questões"
+          description={
+            pagination
+              ? `${pagination.total} questões · modo prática com feedback imediato`
+              : 'Modo prática com feedback imediato'
+          }
           actions={<GroupPicker />}
         />
         <div className="flex flex-wrap gap-4">
@@ -77,29 +90,41 @@ export default function QuestoesPage() {
         {loading ? (
           <div className="flex justify-center p-12"><Spinner className="h-8 w-8" /></div>
         ) : (
-          <div className="grid gap-3">
-            {items.map((q) => (
-              <Link key={q.id} href={`/questoes/${q.id}`}>
-                <Card className="border-border hover:bg-secondary/30 transition-colors">
-                  <CardContent className="p-4 flex items-center justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex gap-2 mb-1">
-                        {q.discipline && <Badge variant="outline">{q.discipline}</Badge>}
-                        <Badge variant="secondary">
-                          {DIFFICULTY_LABELS[q.difficulty as QuestionDifficulty]}
-                        </Badge>
+          <>
+            <div className="grid gap-3">
+              {items.map((q) => (
+                <Link key={q.id} href={`/questoes/${q.id}`}>
+                  <Card className="border-border hover:bg-secondary/30 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex gap-2 mb-1">
+                          {q.discipline && <Badge variant="outline">{q.discipline}</Badge>}
+                          <Badge variant="secondary">
+                            {DIFFICULTY_LABELS[q.difficulty as QuestionDifficulty]}
+                          </Badge>
+                        </div>
+                        <p className="text-sm line-clamp-2">{q.statement}</p>
                       </div>
-                      <p className="text-sm line-clamp-2">{q.statement}</p>
-                    </div>
-                    <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-            {items.length === 0 && groupId && (
-              <p className="text-center text-muted-foreground py-8">Nenhuma questão encontrada.</p>
+                      <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+              {items.length === 0 && groupId && (
+                <p className="text-center text-muted-foreground py-8">Nenhuma questão encontrada.</p>
+              )}
+            </div>
+            {pagination && (
+              <PaginationControls
+                page={page}
+                limit={limit}
+                total={pagination.total}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+                onLimitChange={setLimit}
+              />
             )}
-          </div>
+          </>
         )}
       </div>
     </CanView>

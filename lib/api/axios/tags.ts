@@ -2,7 +2,7 @@ import { axiosInstance } from '../client'
 import { TAGS } from '../endpoints'
 
 export const tagsApi = {
-  list: () => axiosInstance.get(TAGS.LIST),
+  list: (params?: Record<string, unknown>) => axiosInstance.get(TAGS.LIST, { params }),
   getById: (id: string | number) => axiosInstance.get(TAGS.GET_BY_ID(id)),
   create: (data: Record<string, unknown>) => axiosInstance.post(TAGS.CREATE, data),
   delete: (id: string | number) => axiosInstance.delete(TAGS.DELETE(id)),

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useUsersList } from '@/hooks/use-users'
 import { PageHeader } from '@/components/app/page-header'
+import { PaginationControls } from '@/components/app/pagination-controls'
 import { UserFormDrawer } from '@/components/forms/user-form-drawer'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -21,7 +22,7 @@ import { CanView } from '@/components/auth/can-view'
 
 export default function AdminUsuariosPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const { data: users, loading, error, refetch } = useUsersList()
+  const { items, loading, error, refetch, page, limit, pagination, setPage, setLimit } = useUsersList()
 
   return (
     <CanView view="admin.users" fallback={<p>Sem permissão.</p>}>
@@ -40,24 +41,38 @@ export default function AdminUsuariosPage() {
           {loading ? (
             <div className="flex justify-center p-12"><Spinner className="h-8 w-8" /></div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>E-mail</TableHead>
-                  <TableHead>Cargo</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(users ?? []).map((u) => (
-                  <TableRow key={u.id}>
-                    <TableCell className="font-medium">{u.name}</TableCell>
-                    <TableCell>{u.email}</TableCell>
-                    <TableCell><Badge variant="secondary">{u.role}</Badge></TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>E-mail</TableHead>
+                    <TableHead>Cargo</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {items.map((u) => (
+                    <TableRow key={u.id}>
+                      <TableCell className="font-medium">{u.name}</TableCell>
+                      <TableCell>{u.email}</TableCell>
+                      <TableCell><Badge variant="secondary">{u.role}</Badge></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {pagination && (
+                <div className="p-4">
+                  <PaginationControls
+                    page={page}
+                    limit={limit}
+                    total={pagination.total}
+                    totalPages={pagination.totalPages}
+                    onPageChange={setPage}
+                    onLimitChange={setLimit}
+                  />
+                </div>
+              )}
+            </>
           )}
         </Card>
         <UserFormDrawer open={drawerOpen} onOpenChange={setDrawerOpen} onSuccess={() => refetch(true)} />

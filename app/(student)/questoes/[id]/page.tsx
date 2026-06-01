@@ -12,11 +12,9 @@ import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { DIFFICULTY_LABELS } from '@/lib/constants'
 import type { AnswerQuestionResponse, QuestionDifficulty } from '@/lib/api/types'
-import { usePermissions } from '@/hooks/use-permissions'
 
 export default function QuestaoDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const { isAdmin } = usePermissions()
   const { data: question, loading, error } = useQuestionDetail(id)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [result, setResult] = useState<AnswerQuestionResponse | null>(null)
@@ -74,9 +72,8 @@ export default function QuestaoDetailPage({ params }: { params: Promise<{ id: st
           <p className="text-base leading-relaxed">{question.statement}</p>
           <div className="space-y-2">
             {(question.alternatives ?? []).map((alt) => {
-              const showCorrect = result && (isAdmin || result.isCorrect)
               const isSelected = selectedId === alt.id
-              const isCorrectAlt = showCorrect && alt.isCorrect
+              const isCorrectAlt = result && alt.id === result.correctAlternativeId
               const isWrong = result && isSelected && !result.isCorrect
               return (
                 <button

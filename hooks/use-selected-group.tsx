@@ -32,16 +32,17 @@ const SelectedGroupContext = createContext<SelectedGroupContextValue | null>(nul
 export function SelectedGroupProvider({ children }: { children: ReactNode }) {
   const { can } = usePermissions()
   const isAdmin = can('groups.manage')
-  const { data: groups, loading: groupsLoading, refetch: refetchGroups } = useGroupsList(
-    undefined,
-    isAdmin
-  )
-  const { data: plans, loading: plansLoading } = useStudyPlansList()
+  const {
+    items: groups,
+    loading: groupsLoading,
+    refetch: refetchGroups,
+  } = useGroupsList({ page: 1, limit: 100 }, isAdmin)
+  const { items: plans, loading: plansLoading } = useStudyPlansList()
 
   const [groupId, setGroupIdState] = useState<string | null>(null)
 
   const options = useMemo<GroupOption[]>(() => {
-    if (isAdmin && groups?.length) {
+    if (isAdmin && groups.length) {
       return groups.map((g) => ({ id: g.id, name: g.name }))
     }
     if (plans?.length) {

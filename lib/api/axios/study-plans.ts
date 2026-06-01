@@ -2,7 +2,7 @@ import { axiosInstance } from '../client'
 import { STUDY_PLANS } from '../endpoints'
 
 export const studyPlansApi = {
-  list: () => axiosInstance.get(STUDY_PLANS.LIST),
+  list: (params?: Record<string, unknown>) => axiosInstance.get(STUDY_PLANS.LIST, { params }),
   getById: (id: string | number) => axiosInstance.get(STUDY_PLANS.GET_BY_ID(id)),
   create: (data: Record<string, unknown>) => axiosInstance.post(STUDY_PLANS.CREATE, data),
   update: (id: string | number, data: Record<string, unknown>) =>

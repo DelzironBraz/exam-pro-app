@@ -2,7 +2,7 @@ import { axiosInstance } from '../client'
 import { USERS } from '../endpoints'
 
 export const usersApi = {
-  list: () => axiosInstance.get(USERS.LIST),
+  list: (params?: Record<string, unknown>) => axiosInstance.get(USERS.LIST, { params }),
   getById: (id: string | number) => axiosInstance.get(USERS.GET_BY_ID(id)),
   create: (data: Record<string, unknown>) => axiosInstance.post(USERS.CREATE, data),
   update: (id: string | number, data: Record<string, unknown>) =>
