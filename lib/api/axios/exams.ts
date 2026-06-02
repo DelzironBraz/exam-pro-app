@@ -1,8 +1,10 @@
+import type { PaginationParams } from '../types'
 import { axiosInstance } from '../client'
 import { EXAMS } from '../endpoints'
 
 export const examsApi = {
-  list: (params: { groupId: string }) => axiosInstance.get(EXAMS.LIST, { params }),
+  list: (params: { groupId: string } & PaginationParams) =>
+    axiosInstance.get(EXAMS.LIST, { params }),
   myAttempts: (params?: Record<string, unknown>) =>
     axiosInstance.get(EXAMS.MY_ATTEMPTS, { params }),
   getAttempt: (attemptId: string | number) => axiosInstance.get(EXAMS.GET_ATTEMPT(attemptId)),

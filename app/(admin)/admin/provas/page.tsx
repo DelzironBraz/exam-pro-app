@@ -65,7 +65,7 @@ export default function AdminProvasPage() {
                       {exam.institution} · {exam.organization}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {exam.totalQuestions ?? exam.questionIds?.length ?? 0} questões · {exam.durationMinutes} min
+                      {exam.totalQuestions ?? 0} questões · {exam.durationMinutes} min
                     </p>
                     <div className="flex gap-2">
                       <Button size="sm" variant="outline" asChild>

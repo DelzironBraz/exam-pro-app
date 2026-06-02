@@ -71,6 +71,12 @@ export interface QuestionAlternative {
   isCorrect?: boolean
 }
 
+export interface QuestionLastAnswer {
+  selectedAlternativeId: string
+  isCorrect: boolean
+  answeredAt: string
+}
+
 export interface QuestionListItem {
   id: string
   statement: string
@@ -78,7 +84,12 @@ export interface QuestionListItem {
   discipline: string | null
   topic: string | null
   difficulty: QuestionDifficulty
+  createdBy?: string
+  createdAt?: string
   tags: string[]
+  alternatives?: QuestionAlternative[]
+  completed?: boolean
+  lastAnswer?: QuestionLastAnswer | null
 }
 
 export interface QuestionResponse extends QuestionListItem {
@@ -109,9 +120,10 @@ export interface SimulationResponse {
   groupId: string
   timerMode: 'fixed' | 'free'
   durationMinutes: number | null
-  createdBy: string
+  createdBy?: string
   createdAt: string
   questionIds?: string[]
+  totalQuestions?: number
 }
 
 export interface SimulationAttemptResponse {

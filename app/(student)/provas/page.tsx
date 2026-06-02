@@ -32,11 +32,17 @@ export default function ProvasPage() {
             </>
           }
         />
+        {!groupId && (
+          <p className="text-sm text-muted-foreground">Selecione um grupo para listar as provas.</p>
+        )}
         {error && <p className="text-sm text-destructive">{error}</p>}
         {loading ? (
           <div className="flex justify-center p-12"><Spinner className="h-8 w-8" /></div>
         ) : (
           <>
+            {items.length === 0 && groupId && (
+              <p className="text-sm text-muted-foreground">Nenhuma prova encontrada neste grupo.</p>
+            )}
             <div className="grid gap-4 md:grid-cols-2">
               {items.map((exam) => (
                 <Card key={exam.id} className="border-border">
@@ -48,7 +54,7 @@ export default function ProvasPage() {
                     <div className="flex gap-2">
                       <Badge variant="outline">{exam.durationMinutes} min</Badge>
                       <Badge variant="secondary">
-                        {exam.totalQuestions ?? exam.questionIds?.length ?? 0} questões
+                        {exam.totalQuestions ?? 0} questões
                       </Badge>
                     </div>
                     <Button asChild className="gap-2">

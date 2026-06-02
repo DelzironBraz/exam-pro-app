@@ -29,14 +29,14 @@ export function usePaginatedQuery<TItem, TParams extends Record<string, unknown>
     setPage(initialPage)
   }, [baseKey, initialPage])
 
-  const params = useMemo(
-    () => ({
-      ...(baseParams ?? ({} as TParams)),
+  const params = useMemo(() => {
+    const parsed = baseKey === '{}' ? ({} as TParams) : (JSON.parse(baseKey) as TParams)
+    return {
+      ...parsed,
       page,
       limit,
-    }),
-    [baseParams, page, limit]
-  )
+    }
+  }, [baseKey, page, limit])
 
   const stableFetcher = useCallback(
     () => fetcher(params as TParams & { page: number; limit: number }),

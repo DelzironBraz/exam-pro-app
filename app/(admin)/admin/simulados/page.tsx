@@ -61,7 +61,7 @@ export default function AdminSimuladosPage() {
                     <div className="flex gap-2">
                       <Badge variant="secondary">{s.timerMode}</Badge>
                       {s.durationMinutes && <Badge variant="outline">{s.durationMinutes} min</Badge>}
-                      <Badge variant="outline">{s.questionIds?.length ?? 0} questões</Badge>
+                      <Badge variant="outline">{s.totalQuestions ?? s.questionIds?.length ?? 0} questões</Badge>
                     </div>
                     <div className="flex gap-2">
                       <Button size="sm" asChild>

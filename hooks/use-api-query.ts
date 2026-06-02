@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { buildCacheKey, fetchWithDedup, invalidateCache } from '@/lib/api/cache'
 import { getApiErrorMessage } from '@/lib/api/client'
 
@@ -30,7 +30,8 @@ export function useApiQuery<T>(
     [namespace, params]
   )
 
-  const stableFetcher = useCallback(fetcher, [cacheKey, fetcher])
+  const fetcherRef = useRef(fetcher)
+  fetcherRef.current = fetcher
 
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(enabled)
@@ -40,12 +41,17 @@ export function useApiQuery<T>(
     async (force = false) => {
       if (!enabled) {
         setLoading(false)
+        setData(null)
         return
       }
       setLoading(true)
       setError(null)
       try {
-        const result = await fetchWithDedup(cacheKey, stableFetcher, { ttlMs, force })
+        const result = await fetchWithDedup(
+          cacheKey,
+          () => fetcherRef.current(),
+          { ttlMs, force }
+        )
         setData(result)
       } catch (err) {
         setError(getApiErrorMessage(err))
@@ -53,7 +59,7 @@ export function useApiQuery<T>(
         setLoading(false)
       }
     },
-    [cacheKey, enabled, stableFetcher, ttlMs]
+    [cacheKey, enabled, ttlMs]
   )
 
   const refetch = useCallback(async (force = true) => run(force), [run])
@@ -63,8 +69,8 @@ export function useApiQuery<T>(
   }, [namespace])
 
   useEffect(() => {
-    run(false)
-  }, [run])
+    void run(false)
+  }, [cacheKey, enabled, run])
 
   return useMemo(
     () => ({ data, loading, error, refetch, invalidate }),

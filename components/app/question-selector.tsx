@@ -4,7 +4,8 @@ import { useCallback, useMemo, useState } from 'react'
 import { questionsApi } from '@/lib/api/axios'
 import { usePaginatedQuery } from '@/hooks/use-paginated-query'
 import { useSelectedGroup } from '@/hooks/use-selected-group'
-import type { Paginated, QuestionListItem } from '@/lib/api/types'
+import { normalizePaginated } from '@/lib/pagination'
+import type { QuestionListItem } from '@/lib/api/types'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -36,7 +37,7 @@ export function QuestionSelector({ selectedIds, onChange }: QuestionSelectorProp
         return { items: [], total: 0, page: 1, limit: 20, totalPages: 0 } satisfies Paginated<QuestionListItem>
       }
       const { data } = await questionsApi.list(params)
-      return data as Paginated<QuestionListItem>
+      return normalizePaginated<QuestionListItem>(data, params.limit)
     },
     []
   )

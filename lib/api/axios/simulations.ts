@@ -1,8 +1,10 @@
+import type { PaginationParams } from '../types'
 import { axiosInstance } from '../client'
 import { SIMULATIONS } from '../endpoints'
 
 export const simulationsApi = {
-  list: (params: { groupId: string }) => axiosInstance.get(SIMULATIONS.LIST, { params }),
+  list: (params: { groupId: string } & PaginationParams) =>
+    axiosInstance.get(SIMULATIONS.LIST, { params }),
   getById: (id: string | number) => axiosInstance.get(SIMULATIONS.GET_BY_ID(id)),
   create: (data: Record<string, unknown>) => axiosInstance.post(SIMULATIONS.CREATE, data),
   delete: (id: string | number) => axiosInstance.delete(SIMULATIONS.DELETE(id)),

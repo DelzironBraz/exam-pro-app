@@ -1,26 +1,36 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { examsApi } from '@/lib/api/axios'
 import { useApiQuery } from '@/hooks/use-api-query'
 import { usePaginatedQuery } from '@/hooks/use-paginated-query'
 import { usePermissions } from '@/hooks/use-permissions'
+import { normalizePaginated } from '@/lib/pagination'
 import type { ExamAttemptResponse, ExamResponse, Paginated } from '@/lib/api/types'
 
 export function useExamsList(groupId: string | undefined) {
   const { can } = usePermissions()
 
+  const baseParams = useMemo(
+    () => ({ groupId: groupId ?? '' }),
+    [groupId]
+  )
+
   const fetcher = useCallback(
     async (p: { groupId: string; page: number; limit: number }) => {
-      const { data } = await examsApi.list({ groupId: p.groupId, page: p.page, limit: p.limit })
-      return data as Paginated<ExamResponse>
+      const { data } = await examsApi.list({
+        groupId: p.groupId,
+        page: p.page,
+        limit: p.limit,
+      })
+      return normalizePaginated<ExamResponse>(data, p.limit)
     },
     []
   )
 
   return usePaginatedQuery(fetcher, {
     namespace: 'exams:list',
-    baseParams: { groupId: groupId ?? '' },
+    baseParams,
     enabled: !!groupId && can('exams.read'),
   })
 }
@@ -30,7 +40,7 @@ export function useMyExamAttempts() {
 
   const fetcher = useCallback(async (p: { page: number; limit: number }) => {
     const { data } = await examsApi.myAttempts({ page: p.page, limit: p.limit })
-    return data as Paginated<ExamAttemptResponse>
+    return normalizePaginated<ExamAttemptResponse>(data, p.limit)
   }, [])
 
   return usePaginatedQuery(fetcher, {

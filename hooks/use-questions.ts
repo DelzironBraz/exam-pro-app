@@ -5,7 +5,13 @@ import { questionsApi } from '@/lib/api/axios'
 import { useApiQuery } from '@/hooks/use-api-query'
 import { usePaginatedQuery } from '@/hooks/use-paginated-query'
 import { usePermissions } from '@/hooks/use-permissions'
-import type { Paginated, QuestionListItem, QuestionResponse } from '@/lib/api/types'
+import { normalizePaginated } from '@/lib/pagination'
+import type {
+  AnswerQuestionResponse,
+  Paginated,
+  QuestionListItem,
+  QuestionResponse,
+} from '@/lib/api/types'
 
 export interface QuestionsListParams {
   groupId?: string
@@ -22,7 +28,7 @@ export function useQuestionsList(params: QuestionsListParams = {}) {
   const fetcher = useCallback(
     async (p: QuestionsListParams & { page: number; limit: number }) => {
       const { data } = await questionsApi.list(p as Record<string, unknown>)
-      return data as Paginated<QuestionListItem>
+      return normalizePaginated<QuestionListItem>(data, p.limit)
     },
     []
   )
@@ -48,4 +54,19 @@ export function useQuestionDetail(id: string | undefined) {
     params: { id },
     enabled,
   })
+}
+
+export function useSubmitQuestionAnswer() {
+  const submit = useCallback(
+    async (
+      questionId: string,
+      payload: { selectedAlternativeId: string; timeSpentSeconds: number }
+    ) => {
+      const { data } = await questionsApi.answer(questionId, payload)
+      return data as AnswerQuestionResponse
+    },
+    []
+  )
+
+  return { submit }
 }

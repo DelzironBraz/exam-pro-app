@@ -1,16 +1,13 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
+import { useCallback, useMemo, useState } from 'react'
 import { useQuestionsList } from '@/hooks/use-questions'
 import { useSelectedGroup } from '@/hooks/use-selected-group'
 import { PageHeader } from '@/components/app/page-header'
 import { GroupPicker } from '@/components/app/group-picker'
 import { PaginationControls } from '@/components/app/pagination-controls'
-import { Card, CardContent } from '@/components/ui/card'
+import { QuestionPracticeCard } from '@/components/questions/question-practice-card'
 import { Spinner } from '@/components/ui/spinner'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -20,9 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DIFFICULTY_LABELS } from '@/lib/constants'
+import { invalidateNamespaces } from '@/lib/api/invalidate'
 import { CanView } from '@/components/auth/can-view'
-import type { QuestionDifficulty } from '@/lib/api/types'
+import type { AnswerQuestionResponse } from '@/lib/api/types'
 
 export default function QuestoesPage() {
   const { groupId } = useSelectedGroup()
@@ -41,12 +38,21 @@ export default function QuestoesPage() {
     items,
     loading,
     error,
+    refetch,
     page,
     limit,
     pagination,
     setPage,
     setLimit,
   } = useQuestionsList(listParams)
+
+  const handleAnswered = useCallback(
+    (_questionId: string, _result: AnswerQuestionResponse) => {
+      invalidateNamespaces('questions')
+      void refetch(true)
+    },
+    [refetch]
+  )
 
   return (
     <CanView view="student.questions" fallback={<p>Sem permissão.</p>}>
@@ -55,8 +61,8 @@ export default function QuestoesPage() {
           title="Banco de Questões"
           description={
             pagination
-              ? `${pagination.total} questões · modo prática com feedback imediato`
-              : 'Modo prática com feedback imediato'
+              ? `${pagination.total} questões · responda na listagem com feedback imediato`
+              : 'Responda na listagem com feedback imediato'
           }
           actions={<GroupPicker />}
         />
@@ -91,24 +97,13 @@ export default function QuestoesPage() {
           <div className="flex justify-center p-12"><Spinner className="h-8 w-8" /></div>
         ) : (
           <>
-            <div className="grid gap-3">
+            <div className="space-y-4 max-w-3xl">
               {items.map((q) => (
-                <Link key={q.id} href={`/questoes/${q.id}`}>
-                  <Card className="border-border hover:bg-secondary/30 transition-colors">
-                    <CardContent className="p-4 flex items-center justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex gap-2 mb-1">
-                          {q.discipline && <Badge variant="outline">{q.discipline}</Badge>}
-                          <Badge variant="secondary">
-                            {DIFFICULTY_LABELS[q.difficulty as QuestionDifficulty]}
-                          </Badge>
-                        </div>
-                        <p className="text-sm line-clamp-2">{q.statement}</p>
-                      </div>
-                      <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-                    </CardContent>
-                  </Card>
-                </Link>
+                <QuestionPracticeCard
+                  key={q.id}
+                  question={q}
+                  onAnswered={handleAnswered}
+                />
               ))}
               {items.length === 0 && groupId && (
                 <p className="text-center text-muted-foreground py-8">Nenhuma questão encontrada.</p>
