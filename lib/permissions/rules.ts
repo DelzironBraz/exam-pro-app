@@ -108,6 +108,8 @@ export const ROUTE_TO_VIEW: Record<string, AppView> = {
   '/admin/grupos': 'admin.groups',
   '/admin/tags': 'admin.tags',
   '/admin/configuracoes': 'admin.settings',
+  '/configuracoes': 'student.settings',
+  '/suporte': 'student.dashboard',
 }
 
 function satisfiesLevel(role: UserRole | null, level: AccessLevel): boolean {

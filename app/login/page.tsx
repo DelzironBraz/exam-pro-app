@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import { Lightbulb, BarChart3, Eye, EyeOff } from "lucide-react"
 import { useAuthLogin } from "@/hooks/use-auth"
+import { GuestGuard } from "@/components/auth/guest-guard"
+import { ThemeToggle } from "@/components/layout/theme-toggle"
 
 function LoginForm() {
   const searchParams = useSearchParams()
@@ -129,7 +131,10 @@ function LoginForm() {
         </div>
 
         <div className="mt-8 flex items-center justify-between text-sm text-muted-foreground">
-          <span>v0.1.0</span>
+          <div className="flex items-center gap-3">
+            <span>v0.1.0</span>
+            <ThemeToggle />
+          </div>
           <div className="flex gap-6">
             <Link href="/privacidade" className="hover:text-foreground transition-colors">
               Privacidade
@@ -177,14 +182,16 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <Spinner className="h-8 w-8" />
-        </div>
-      }
-    >
-      <LoginForm />
-    </Suspense>
+    <GuestGuard>
+      <Suspense
+        fallback={
+          <div className="flex min-h-screen items-center justify-center">
+            <Spinner className="h-8 w-8" />
+          </div>
+        }
+      >
+        <LoginForm />
+      </Suspense>
+    </GuestGuard>
   )
 }

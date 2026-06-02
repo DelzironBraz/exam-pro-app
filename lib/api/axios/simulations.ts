@@ -6,6 +6,10 @@ export const simulationsApi = {
   list: (params: { groupId: string } & PaginationParams) =>
     axiosInstance.get(SIMULATIONS.LIST, { params }),
   getById: (id: string | number) => axiosInstance.get(SIMULATIONS.GET_BY_ID(id)),
+  listQuestions: (
+    simulationId: string | number,
+    params?: { page?: number; limit?: number; attemptId?: string }
+  ) => axiosInstance.get(SIMULATIONS.LIST_QUESTIONS(simulationId), { params }),
   create: (data: Record<string, unknown>) => axiosInstance.post(SIMULATIONS.CREATE, data),
   delete: (id: string | number) => axiosInstance.delete(SIMULATIONS.DELETE(id)),
   start: (id: string | number) => axiosInstance.post(SIMULATIONS.START(id)),

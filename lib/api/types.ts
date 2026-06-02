@@ -153,6 +153,34 @@ export interface SimulationResultResponse extends SimulationAttemptResponse {
 
 export interface AttemptAnswerResponse {
   isCorrect: boolean
+  correctAlternativeId?: string
+  explanation?: string | null
+}
+
+export interface AssessmentQuestionSummary {
+  id: string
+  statement: string
+  discipline: string | null
+  topic: string | null
+  difficulty: QuestionDifficulty
+}
+
+export interface AssessmentQuestionListItem {
+  sortOrder: number
+  sectionId?: string | null
+  question: AssessmentQuestionSummary
+  alternatives: QuestionAlternative[]
+  answered: boolean
+  selectedAlternativeId?: string
+  answeredAt?: string
+}
+
+export interface SimulationAttemptDetailResponse extends SimulationAttemptResponse {
+  answers?: SimulationAnswerResult[]
+}
+
+export interface ExamAttemptDetailResponse extends ExamAttemptResponse {
+  answers?: SimulationAnswerResult[]
 }
 
 export interface FlashcardResponse {

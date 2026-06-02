@@ -9,6 +9,10 @@ export const examsApi = {
     axiosInstance.get(EXAMS.MY_ATTEMPTS, { params }),
   getAttempt: (attemptId: string | number) => axiosInstance.get(EXAMS.GET_ATTEMPT(attemptId)),
   getById: (id: string | number) => axiosInstance.get(EXAMS.GET_BY_ID(id)),
+  listQuestions: (
+    examId: string | number,
+    params?: { page?: number; limit?: number; attemptId?: string }
+  ) => axiosInstance.get(EXAMS.LIST_QUESTIONS(examId), { params }),
   create: (data: Record<string, unknown>) => axiosInstance.post(EXAMS.CREATE, data),
   update: (id: string | number, data: Record<string, unknown>) =>
     axiosInstance.patch(EXAMS.UPDATE(id), data),

@@ -50,6 +50,7 @@ export const SIMULATIONS = {
   LIST: '/simulations',
   CREATE: '/simulations',
   GET_BY_ID: (simulationId: string | number) => `/simulations/${id(simulationId)}`,
+  LIST_QUESTIONS: (simulationId: string | number) => `/simulations/${id(simulationId)}/questions`,
   DELETE: (simulationId: string | number) => `/simulations/${id(simulationId)}`,
   START: (simulationId: string | number) => `/simulations/${id(simulationId)}/start`,
   SUBMIT_ANSWER: (attemptId: string | number) =>
@@ -85,6 +86,7 @@ export const EXAMS = {
   MY_ATTEMPTS: '/exams/attempts/me',
   GET_ATTEMPT: (attemptId: string | number) => `/exams/attempts/${id(attemptId)}`,
   GET_BY_ID: (examId: string | number) => `/exams/${id(examId)}`,
+  LIST_QUESTIONS: (examId: string | number) => `/exams/${id(examId)}/questions`,
   UPDATE: (examId: string | number) => `/exams/${id(examId)}`,
   DELETE: (examId: string | number) => `/exams/${id(examId)}`,
   ADD_SECTION: (examId: string | number) => `/exams/${id(examId)}/sections`,

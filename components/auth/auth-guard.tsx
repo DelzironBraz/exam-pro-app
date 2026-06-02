@@ -24,6 +24,12 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
 
   useEffect(() => {
     if (isLoading) return
+
+    if (pathname === '/login' && (isAuthenticated || hasStoredSession)) {
+      router.replace(getDefaultHomePath(user?.role ?? null))
+      return
+    }
+
     if (!isAuthenticated && !hasStoredSession) {
       router.replace(`/login?redirect=${encodeURIComponent(pathname)}`)
       return

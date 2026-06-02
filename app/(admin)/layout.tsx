@@ -1,6 +1,5 @@
 import { AuthGuard } from '@/components/auth/auth-guard'
-import { Sidebar } from '@/components/layout/sidebar'
-import { Topbar } from '@/components/layout/topbar'
+import { AppShell } from '@/components/layout/app-shell'
 import { SelectedGroupProvider } from '@/hooks/use-selected-group'
 
 export default function AdminLayout({
@@ -11,13 +10,7 @@ export default function AdminLayout({
   return (
     <AuthGuard requireAdmin>
       <SelectedGroupProvider>
-      <div className="min-h-screen bg-background">
-        <Sidebar variant="admin" />
-        <div className="pl-64">
-          <Topbar />
-          <main className="p-6">{children}</main>
-        </div>
-      </div>
+        <AppShell variant="admin">{children}</AppShell>
       </SelectedGroupProvider>
     </AuthGuard>
   )
