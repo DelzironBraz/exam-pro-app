@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { CheckCircle, Eye, EyeOff, XCircle } from 'lucide-react'
 import { useSubmitQuestionAnswer } from '@/hooks/use-questions'
 import { getApiErrorMessage } from '@/lib/api/client'
-import { sanitizeStatement } from '@/lib/sanitize-statement'
+import { sanitizeStatement, sanitizeAnswer } from '@/lib/sanitize-statement'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -52,8 +52,10 @@ export function QuestionPracticeCard({ question, onAnswered }: QuestionPracticeC
       ? question.lastAnswer!.selectedAlternativeId
       : undefined)
 
-  const referenceAnswer = result?.referenceAnswer ?? question.referenceAnswer ?? null
-  const explanation = result?.explanation ?? question.explanation ?? null
+  const referenceAnswer =
+    sanitizeAnswer(result?.referenceAnswer ?? question.referenceAnswer) || null
+  const explanation =
+    sanitizeAnswer(result?.explanation ?? question.explanation) || null
 
   const feedback = result ?? (review
     ? {
