@@ -6,6 +6,7 @@ import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react'
 import { useQuestionDetail } from '@/hooks/use-questions'
 import { questionsApi } from '@/lib/api/axios'
 import { getApiErrorMessage } from '@/lib/api/client'
+import { sanitizeStatement } from '@/lib/sanitize-statement'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -69,7 +70,7 @@ export default function QuestaoDetailPage({ params }: { params: Promise<{ id: st
       </div>
       <Card className="border-border">
         <CardContent className="p-6 space-y-6">
-          <p className="text-base leading-relaxed">{question.statement}</p>
+          <p className="text-base leading-relaxed whitespace-pre-wrap">{sanitizeStatement(question.statement)}</p>
           <div className="space-y-2">
             {(question.alternatives ?? []).map((alt) => {
               const isSelected = selectedId === alt.id

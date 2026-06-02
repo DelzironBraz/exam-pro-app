@@ -56,13 +56,19 @@ export function useQuestionDetail(id: string | undefined) {
   })
 }
 
+export interface SubmitAnswerPayload {
+  selectedAlternativeId?: string
+  textAnswer?: string
+  timeSpentSeconds: number
+}
+
 export function useSubmitQuestionAnswer() {
   const submit = useCallback(
-    async (
-      questionId: string,
-      payload: { selectedAlternativeId: string; timeSpentSeconds: number }
-    ) => {
-      const { data } = await questionsApi.answer(questionId, payload)
+    async (questionId: string, payload: SubmitAnswerPayload) => {
+      const { data } = await questionsApi.answer(
+        questionId,
+        payload as unknown as Record<string, unknown>
+      )
       return data as AnswerQuestionResponse
     },
     []

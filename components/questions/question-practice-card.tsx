@@ -1,12 +1,14 @@
 'use client'
 
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { CheckCircle, XCircle } from 'lucide-react'
+import { CheckCircle, Eye, EyeOff, XCircle } from 'lucide-react'
 import { useSubmitQuestionAnswer } from '@/hooks/use-questions'
 import { getApiErrorMessage } from '@/lib/api/client'
+import { sanitizeStatement } from '@/lib/sanitize-statement'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { Spinner } from '@/components/ui/spinner'
 import { DIFFICULTY_LABELS } from '@/lib/constants'
 import type {
@@ -26,42 +28,68 @@ export function QuestionPracticeCard({ question, onAnswered }: QuestionPracticeC
 
   const review = question.completed && question.lastAnswer
 
+  const alternatives = useMemo(
+    () => question.alternatives ?? question.answers ?? [],
+    [question.alternatives, question.answers]
+  )
+
+  const isDiscursive = question.type === 'discursive' || alternatives.length === 0
+
   const [selectedId, setSelectedId] = useState<string | null>(
     review ? question.lastAnswer!.selectedAlternativeId : null
   )
+  const [textAnswer, setTextAnswer] = useState('')
   const [result, setResult] = useState<AnswerQuestionResponse | null>(null)
+  const [revealed, setRevealed] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const correctAlternativeId =
+    result?.correctAlternativeId ||
+    (review ? question.lastAnswer!.correctAlternativeId : undefined) ||
+    alternatives.find((alt) => alt.isCorrect)?.id ||
+    (review && question.lastAnswer!.isCorrect
+      ? question.lastAnswer!.selectedAlternativeId
+      : undefined)
+
+  const referenceAnswer = result?.referenceAnswer ?? question.referenceAnswer ?? null
+  const explanation = result?.explanation ?? question.explanation ?? null
 
   const feedback = result ?? (review
     ? {
         isCorrect: question.lastAnswer!.isCorrect,
-        correctAlternativeId: question.lastAnswer!.isCorrect
-          ? question.lastAnswer!.selectedAlternativeId
-          : '',
-        explanation: null,
+        correctAlternativeId: correctAlternativeId ?? '',
+        referenceAnswer,
+        explanation,
       }
     : null)
 
   const locked = !!feedback
-
-  const alternatives = useMemo(
-    () => question.alternatives ?? [],
-    [question.alternatives]
-  )
+  const showAnswer = revealed || !!feedback
+  const hasModelAnswer = !!referenceAnswer || !!explanation
+  const similarityPercent =
+    typeof result?.similarityScore === 'number'
+      ? Math.round(result.similarityScore * 100)
+      : null
 
   const handleAnswer = useCallback(async () => {
-    if (!selectedId || locked) return
+    if (locked) return
+    const trimmedText = textAnswer.trim()
+    if (isDiscursive ? !trimmedText : !selectedId) return
+
+    const timeSpentSeconds = Math.max(
+      1,
+      Math.round((Date.now() - startedAt.current) / 1000)
+    )
+
+    const payload = isDiscursive
+      ? { textAnswer: trimmedText, timeSpentSeconds }
+      : { selectedAlternativeId: selectedId!, timeSpentSeconds }
+
     setSubmitting(true)
     setSubmitError(null)
     try {
-      const data = await submit(question.id, {
-        selectedAlternativeId: selectedId,
-        timeSpentSeconds: Math.max(
-          1,
-          Math.round((Date.now() - startedAt.current) / 1000)
-        ),
-      })
+      const data = await submit(question.id, payload)
       setResult(data)
       onAnswered?.(question.id, data)
     } catch (err) {
@@ -69,7 +97,7 @@ export function QuestionPracticeCard({ question, onAnswered }: QuestionPracticeC
     } finally {
       setSubmitting(false)
     }
-  }, [locked, onAnswered, question.id, selectedId, submit])
+  }, [isDiscursive, locked, onAnswered, question.id, selectedId, submit, textAnswer])
 
   return (
     <Card className="border-border">
@@ -80,6 +108,7 @@ export function QuestionPracticeCard({ question, onAnswered }: QuestionPracticeC
           <Badge variant="secondary">
             {DIFFICULTY_LABELS[question.difficulty as QuestionDifficulty]}
           </Badge>
+          {isDiscursive && <Badge variant="outline">Discursiva</Badge>}
           {review && !result && (
             <Badge variant={question.lastAnswer!.isCorrect ? 'default' : 'destructive'}>
               {question.lastAnswer!.isCorrect ? 'Respondida · acerto' : 'Respondida · erro'}
@@ -87,14 +116,23 @@ export function QuestionPracticeCard({ question, onAnswered }: QuestionPracticeC
           )}
         </div>
 
-        <p className="text-sm leading-relaxed whitespace-pre-wrap">{question.statement}</p>
+        <p className="text-sm leading-relaxed whitespace-pre-wrap">{sanitizeStatement(question.statement)}</p>
 
-        {alternatives.length > 0 ? (
+        {isDiscursive ? (
+          <Textarea
+            value={textAnswer}
+            onChange={(e) => setTextAnswer(e.target.value)}
+            disabled={locked}
+            rows={5}
+            placeholder="Digite sua resposta..."
+            className="resize-y"
+          />
+        ) : (
           <div className="space-y-2">
             {alternatives.map((alt) => {
               const isSelected = selectedId === alt.id
-              const correctId = feedback?.correctAlternativeId
-              const isCorrectAlt = !!correctId && alt.id === correctId
+              const isCorrectAlt =
+                showAnswer && !!correctAlternativeId && alt.id === correctAlternativeId
               const isWrong = !!feedback && isSelected && !feedback.isCorrect
 
               return (
@@ -119,21 +157,45 @@ export function QuestionPracticeCard({ question, onAnswered }: QuestionPracticeC
               )
             })}
           </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">Alternativas indisponíveis.</p>
         )}
 
         {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 
-        {!feedback ? (
-          <Button
-            onClick={handleAnswer}
-            disabled={!selectedId || submitting || alternatives.length === 0}
-            className="w-full sm:w-auto"
-          >
-            {submitting ? <Spinner className="h-4 w-4" /> : 'Confirmar resposta'}
-          </Button>
-        ) : (
+        {!feedback && (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={handleAnswer}
+              disabled={
+                submitting || (isDiscursive ? !textAnswer.trim() : !selectedId)
+              }
+              className="w-full sm:w-auto"
+            >
+              {submitting ? <Spinner className="h-4 w-4" /> : 'Enviar resposta'}
+            </Button>
+            {isDiscursive && hasModelAnswer && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setRevealed((v) => !v)}
+                className="w-full sm:w-auto"
+              >
+                {revealed ? (
+                  <>
+                    <EyeOff className="h-4 w-4 mr-2" />
+                    Ocultar resposta
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver resposta-modelo
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        )}
+
+        {feedback && (
           <div className="rounded-lg border border-border p-4 space-y-2">
             <div className="flex items-center gap-2 font-medium text-sm">
               {feedback.isCorrect ? (
@@ -147,9 +209,35 @@ export function QuestionPracticeCard({ question, onAnswered }: QuestionPracticeC
                   Resposta incorreta
                 </>
               )}
+              {similarityPercent !== null && (
+                <Badge variant="secondary">Similaridade: {similarityPercent}%</Badge>
+              )}
             </div>
-            {feedback.explanation && (
-              <p className="text-sm text-muted-foreground">{feedback.explanation}</p>
+            {isDiscursive && referenceAnswer && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Resposta-modelo
+                </p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{referenceAnswer}</p>
+              </div>
+            )}
+            {explanation && (
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{explanation}</p>
+            )}
+          </div>
+        )}
+
+        {revealed && !feedback && (
+          <div className="rounded-lg border border-[oklch(0.72_0.19_155)]/40 bg-[oklch(0.72_0.19_155)]/5 p-4 space-y-2">
+            <div className="flex items-center gap-2 font-medium text-sm">
+              <CheckCircle className="h-5 w-5 text-[oklch(0.72_0.19_155)]" />
+              Resposta-modelo
+            </div>
+            {referenceAnswer && (
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{referenceAnswer}</p>
+            )}
+            {explanation && (
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{explanation}</p>
             )}
           </div>
         )}

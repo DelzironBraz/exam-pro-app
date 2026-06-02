@@ -97,7 +97,7 @@ export default function QuestoesPage() {
           <div className="flex justify-center p-12"><Spinner className="h-8 w-8" /></div>
         ) : (
           <>
-            <div className="space-y-4 max-w-3xl">
+            <div className="w-full space-y-4">
               {items.map((q) => (
                 <QuestionPracticeCard
                   key={q.id}

@@ -50,6 +50,7 @@ export interface UserResponse {
 export type GroupType = 'contest' | 'technology' | 'language' | 'custom'
 export type GroupVisibility = 'public' | 'private'
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard'
+export type QuestionType = 'multiple_choice' | 'discursive'
 
 export interface GroupResponse {
   id: string
@@ -75,6 +76,7 @@ export interface QuestionLastAnswer {
   selectedAlternativeId: string
   isCorrect: boolean
   answeredAt: string
+  correctAlternativeId?: string
 }
 
 export interface QuestionListItem {
@@ -84,10 +86,14 @@ export interface QuestionListItem {
   discipline: string | null
   topic: string | null
   difficulty: QuestionDifficulty
+  type?: QuestionType
   createdBy?: string
   createdAt?: string
   tags: string[]
   alternatives?: QuestionAlternative[]
+  answers?: QuestionAlternative[]
+  explanation?: string | null
+  referenceAnswer?: string | null
   completed?: boolean
   lastAnswer?: QuestionLastAnswer | null
 }
@@ -104,7 +110,9 @@ export type QuestionsListResponse = Paginated<QuestionListItem>
 
 export interface AnswerQuestionResponse {
   isCorrect: boolean
-  correctAlternativeId: string
+  correctAlternativeId?: string
+  referenceAnswer?: string | null
+  similarityScore?: number
   explanation?: string | null
 }
 
